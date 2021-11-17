@@ -1,0 +1,114 @@
+---
+title: "Stat 433 Project"
+author: "Cameron Jones"
+date: "11/16/2021"
+output: html_document
+---
+
+```{r setup, include=FALSE, results = FALSE, message = FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+library(tidyverse)
+```
+
+# Scroll to bottom to see figure 1!
+
+## Thesis
+
+Among Premier League teams over the last seven years, the club transfer windows with higher net transfer spend have higher increase in expected points from season to season compared to club transfer windows with lower net transfer spend, controlling for average age of transfer.
+
+
+## Reading Data Into R
+
+### Performance Data
+
+season stats, goals, expected goals, etc., from understat:
+https://www.kaggle.com/slehkyi/extended-football-stats-for-european-leagues-xg
+
+```{r, message = FALSE}
+performanceData = read_csv("ProjectData\\understat.csv")
+str(performanceData)
+```
+
+### Transfer Data
+
+Individual transfers in European soccer leagues as scraped from www.transfermarkt.com, by github user ewenme: https://github.com/ewenme/transfers
+
+```{r, message = FALSE}
+rawTransferData = read_csv("https://raw.githubusercontent.com/ewenme/transfers/master/data/2014/english_premier_league.csv")
+
+for (i in 2015:2019) {
+  link = paste0("https://raw.githubusercontent.com/ewenme/transfers/master/data/", i, "/english_premier_league.csv")
+  data = read_csv(link)
+  rawTransferData = bind_rows(rawTransferData, data)
+}
+str(rawTransferData)
+```
+
+## Data Cleaning and Preparing
+
+### Transfer Data
+
+```{r, message = FALSE}
+transferData = rawTransferData
+
+#adjust data formatting issues
+transferData$fee_cleaned[transferData$player_name == "Bertrand Traoré" & transferData$age == 20] = 1.8
+transferData$club_name = sub(" FC", "", transferData$club_name)
+transferData$club_name[transferData$club_name == "AFC Bournemouth"] = "Bournemouth"
+transferData$club_name[transferData$club_name == "Brighton & Hove Albion"] = "Brighton"
+transferData$club_name[transferData$club_name == "Cardiff City"] = "Cardiff"
+transferData$club_name[transferData$club_name == "Huddersfield Town"] = "Huddersfield"
+transferData$club_name[transferData$club_name == "Hull City"] = "Hull"
+transferData$club_name[transferData$club_name == "Leicester City"] = "Leicester"
+transferData$club_name[transferData$club_name == "Norwich City"] = "Norwich"
+transferData$club_name[transferData$club_name == "Stoke City"] = "Stoke"
+transferData$club_name[transferData$club_name == "Sunderland AFC"] = "Sunderland"
+transferData$club_name[transferData$club_name == "Swansea City"] = "Swansea"
+transferData$club_name[transferData$club_name == "Tottenham Hotspur"] = "Tottenham"
+transferData$club_name[transferData$club_name == "West Ham United"] = "West Ham"
+
+#filter to summer transfers with fees; control for transfer in or out
+transferData$fee_cleaned[transferData$transfer_movement == "out"] = -1 * transferData$fee_cleaned
+transferData = transferData %>% filter(transfer_period == "Summer", complete.cases(fee_cleaned))
+
+#Classify by three groups: Attacker, Midfielder, Defender
+transferData$positionGroup = "Attacker"
+transferData$positionGroup[grepl("Midfield", transferData$position)] = "Midfielder"
+transferData$positionGroup[(grepl("Back", transferData$position) | transferData$position == "Goalkeeper")] = "Defender"
+
+#dplyr 
+transferData = transferData %>% group_by(year, club_name, positionGroup) %>% summarize(netTransferSpend = sum(fee_cleaned), avgAge = mean(age), n = n()) %>% pivot_wider(names_from = positionGroup, values_from = c(netTransferSpend, avgAge, n))
+
+transferData[is.na(transferData)] = 0 #some teams did not buy or sell a certain class of player in a given summer. set these to zero.
+
+transferData = transferData %>% rename(team = club_name) %>% mutate(netTransferSpend_Total = sum(netTransferSpend_Attacker, netTransferSpend_Midfielder, netTransferSpend_Defender))
+
+```
+
+
+### Performance Data
+
+```{r, message = FALSE}
+#Selects the Premier League teams and drops the "league" column.
+performanceData = performanceData %>% filter(...1 == "EPL") %>% rename(year = ...2) %>% select(-...1)
+```
+
+## Results
+
+```{r, message = FALSE}
+finalData = left_join(performanceData, transferData) %>% mutate(avgAge_Overall = avgAge_Attacker * n_Attacker + avgAge_Midfielder * n_Midfielder + avgAge_Defender * n_Defender) %>% select(year, team, xpts, xG, xGA, contains(c("net", "avg", "n_")))
+
+summary(lm(xpts ~ netTransferSpend_Total + avgAge_Overall, data = finalData))
+```
+
+### Figure 1
+
+Here is a scatter plot of net transfer spend in a given summer transfer window versus that team's expected points in the following season. Net transfer spend is calculated as total spending - total revenue from sales, and expected points is a descriptive statistic from understat.com which models the points a team would be expected to gain (3 points for winning a game, 1 point for a draw) given the shots they took and shots taken against them in each game over a season. This relationship is significant and positive (see summary of fit in the above cell).
+
+The next step we have for our data is to make the outcome a difference in expected points over consecutive seasons rather than just the following season's expected points. (This is currently subject to team bias- we are also considering adding a random effect for team.) We are also considering if we need to do other models than linear ones.
+
+```{r}
+finalData %>% ggplot(aes(x = netTransferSpend_Total, y = xpts)) +
+  geom_point() +
+  geom_smooth(method = "lm", se = F, size = 3)
+```
