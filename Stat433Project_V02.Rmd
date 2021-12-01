@@ -9,6 +9,7 @@ output: html_document
 knitr::opts_chunk$set(echo = TRUE)
 suppressPackageStartupMessages(library(tidyverse))
 suppressPackageStartupMessages(library(lme4))
+suppressPackageStartupMessages(library(lmerTest))
 ```
 
 # Scroll to bottom to see figure 1!
@@ -117,8 +118,12 @@ pd = pd[which(!(pd$lastYearXpts == 0) & !is.na(pd$lastYearXpts)),]
 ```{r, message = FALSE}
 finalData = left_join(pd, transferData) %>% mutate(avgAge_Overall = (avgAge_Attacker * n_Attacker + avgAge_Midfielder * n_Midfielder + avgAge_Defender * n_Defender)/(n_Attacker + n_Midfielder + n_Defender), diffXP = xpts - lastYearXpts) %>% select(year, team, pts, xpts, lastYearXpts, diffXP, xG, xGA, contains(c("net", "avg", "n_")))
 
+finalData$team = as.factor(finalData$team)
 
-summary(lm(diffXP ~ netTransferSpend_Total + avgAge_Overall, data = finalData))
+#summary(lm(diffXP ~ netTransferSpend_Total + avgAge_Overall, data = finalData))
+fit = lmer(diffXP ~ netTransferSpend_Total + avgAge_Overall + (1 | team), data = finalData)
+summary(fit)
+rand(fit)
 ```
 
 ### Figure 1
