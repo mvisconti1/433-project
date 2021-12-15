@@ -9,7 +9,7 @@
 <meta http-equiv="X-UA-Compatible" content="IE=EDGE" />
 
 
-<meta name="author" content="Cameron Jones" />
+<meta name="author" content="Cameron Jones, Michael Visconti, Brendan Zimmer" />
 
 <meta name="date" content="2021-11-16" />
 
@@ -166,25 +166,123 @@ pre code {
 
 
 <h1 class="title toc-ignore">Stat 433 Project</h1>
-<h4 class="author">Cameron Jones</h4>
+<h4 class="author">Cameron Jones, Michael Visconti, Brendan Zimmer</h4>
 <h4 class="date">11/16/2021</h4>
 
 </div>
 
 
-<div id="scroll-to-bottom-to-see-figure-1" class="section level1">
-<h1>Scroll to bottom to see figure 1!</h1>
-<div id="thesis" class="section level2">
-<h2>Thesis</h2>
-<p>Among Premier League teams over the last seven years, the club transfer windows with higher net transfer spend have higher increase in expected points from season to season compared to club transfer windows with lower net transfer spend, controlling for average age of transfer.</p>
+<div id="does-spending-impact-premier-league-performance" class="section level1">
+<h1>Does Spending Impact Premier League Performance?</h1>
+<div id="introduction" class="section level2">
+<h2>Introduction</h2>
+<p>Recent years have seen the European soccer sphere undergo two significant transformations. On one front, statistical analysis of the game has greatly advanced, not only in sophistication but in visibility. Metrics such as expected goals and expected points have been developed and have found a place among popular soccer media. Furthermore, on a relevant note for this paper, soccer analytic data has become more publicly available than ever. At the same time as the statistical transformation, European soccer was also undergoing a financial transformation. That is- <a href="https://www.statista.com/statistics/746589/premier-league-transfer-fee-spending/">money flow in the game was ballooning</a>. English Premier League teams spent 6 billion euros on players in the five years from 2012-2016; and promptly spent almost 10 billion over the next five years. With these two shifts in the modern game, data scientists interested in connecting finances with performance in European soccer now find themselves in a privileged position, with more money flow to study and more advanced data to study it with.<br />
+Our project seeks to understand the relationship between the transfer expenditures of English Premier League teams and their performance in the following season, which brings us to the thesis of our project. <strong>Among Premier League teams over the last six years, we find no evidence that the clubs with a higher net transfer spend during a given summer see a greater increase in expected points the following season compared to summers with lower net transfer spend, after controlling for last year’s expected points, average age of transfer, and team.</strong> This finding does not support the theory that spending more on transfers will translate to better relative performance in the Premier League.</p>
 </div>
-<div id="reading-data-into-r" class="section level2">
-<h2>Reading Data Into R</h2>
-<div id="performance-data" class="section level3">
-<h3>Performance Data</h3>
-<p>season stats, goals, expected goals, etc., from understat: <a href="https://www.kaggle.com/slehkyi/extended-football-stats-for-european-leagues-xg" class="uri">https://www.kaggle.com/slehkyi/extended-football-stats-for-european-leagues-xg</a></p>
-<pre class="r"><code>performanceData = read_csv(&quot;ProjectData\\understat.csv&quot;)
-str(performanceData)</code></pre>
+<div id="data" class="section level2">
+<h2>Data</h2>
+<div id="datasets" class="section level3">
+<h3>Datasets</h3>
+<p>Our project uses data from two different sources to make a new, unique data set. The first dataset we used was from GitHub user ‘ewenme’ who scraped data from <a href="https://www.transfermarkt.co.uk/" class="uri">https://www.transfermarkt.co.uk/</a> to create a dataset on European soccer player transfers. This data set contained transfer data from 1992/1993 season - 2021/2022 season. The columns included in this data set: ● Club name, player name, age, position, name of club involved, fee, transfer movement, transfer period, fee cleaned, league name, year, and season.</p>
+<pre class="r"><code>rawTransferData = read_csv(&quot;https://raw.githubusercontent.com/ewenme/transfers/master/data/2014/english_premier_league.csv&quot;)</code></pre>
+<pre><code>## Rows: 1109 Columns: 12</code></pre>
+<pre><code>## -- Column specification --------------------------------------------------------
+## Delimiter: &quot;,&quot;
+## chr (9): club_name, player_name, position, club_involved_name, fee, transfer...
+## dbl (3): age, fee_cleaned, year</code></pre>
+<pre><code>## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>for (i in 2015:2019) {
+  link = paste0(&quot;https://raw.githubusercontent.com/ewenme/transfers/master/data/&quot;, i, &quot;/english_premier_league.csv&quot;)
+  data = read_csv(link)
+  rawTransferData = bind_rows(rawTransferData, data)
+}</code></pre>
+<pre><code>## Rows: 990 Columns: 12</code></pre>
+<pre><code>## -- Column specification --------------------------------------------------------
+## Delimiter: &quot;,&quot;
+## chr (9): club_name, player_name, position, club_involved_name, fee, transfer...
+## dbl (3): age, fee_cleaned, year</code></pre>
+<pre><code>## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## Rows: 778 Columns: 12</code></pre>
+<pre><code>## -- Column specification --------------------------------------------------------
+## Delimiter: &quot;,&quot;
+## chr (9): club_name, player_name, position, club_involved_name, fee, transfer...
+## dbl (3): age, fee_cleaned, year</code></pre>
+<pre><code>## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## Rows: 798 Columns: 12</code></pre>
+<pre><code>## -- Column specification --------------------------------------------------------
+## Delimiter: &quot;,&quot;
+## chr (9): club_name, player_name, position, club_involved_name, fee, transfer...
+## dbl (3): age, fee_cleaned, year</code></pre>
+<pre><code>## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## Rows: 743 Columns: 12</code></pre>
+<pre><code>## -- Column specification --------------------------------------------------------
+## Delimiter: &quot;,&quot;
+## chr (9): club_name, player_name, position, club_involved_name, fee, transfer...
+## dbl (3): age, fee_cleaned, year</code></pre>
+<pre><code>## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre><code>## Rows: 709 Columns: 12</code></pre>
+<pre><code>## -- Column specification --------------------------------------------------------
+## Delimiter: &quot;,&quot;
+## chr (9): club_name, player_name, position, club_involved_name, fee, transfer...
+## dbl (3): age, fee_cleaned, year</code></pre>
+<pre><code>## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>str(rawTransferData)</code></pre>
+<pre><code>## spec_tbl_df [5,127 x 12] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
+##  $ club_name         : chr [1:5127] &quot;Arsenal FC&quot; &quot;Arsenal FC&quot; &quot;Arsenal FC&quot; &quot;Arsenal FC&quot; ...
+##  $ player_name       : chr [1:5127] &quot;Alexis Sánchez&quot; &quot;Calum Chambers&quot; &quot;Danny Welbeck&quot; &quot;Mathieu Debuchy&quot; ...
+##  $ age               : num [1:5127] 25 19 23 28 25 22 21 19 22 19 ...
+##  $ position          : chr [1:5127] &quot;Centre-Forward&quot; &quot;Centre-Back&quot; &quot;Centre-Forward&quot; &quot;Right-Back&quot; ...
+##  $ club_involved_name: chr [1:5127] &quot;FC Barcelona&quot; &quot;Southampton&quot; &quot;Man Utd&quot; &quot;Newcastle&quot; ...
+##  $ fee               : chr [1:5127] &quot;£38.25m&quot; &quot;£18.21m&quot; &quot;£18.00m&quot; &quot;£13.50m&quot; ...
+##  $ transfer_movement : chr [1:5127] &quot;in&quot; &quot;in&quot; &quot;in&quot; &quot;in&quot; ...
+##  $ transfer_period   : chr [1:5127] &quot;Summer&quot; &quot;Summer&quot; &quot;Summer&quot; &quot;Summer&quot; ...
+##  $ fee_cleaned       : num [1:5127] 38.2 18.2 18 13.5 3.6 ...
+##  $ league_name       : chr [1:5127] &quot;Premier League&quot; &quot;Premier League&quot; &quot;Premier League&quot; &quot;Premier League&quot; ...
+##  $ year              : num [1:5127] 2014 2014 2014 2014 2014 ...
+##  $ season            : chr [1:5127] &quot;2014/2015&quot; &quot;2014/2015&quot; &quot;2014/2015&quot; &quot;2014/2015&quot; ...
+##  - attr(*, &quot;spec&quot;)=
+##   .. cols(
+##   ..   club_name = col_character(),
+##   ..   player_name = col_character(),
+##   ..   age = col_double(),
+##   ..   position = col_character(),
+##   ..   club_involved_name = col_character(),
+##   ..   fee = col_character(),
+##   ..   transfer_movement = col_character(),
+##   ..   transfer_period = col_character(),
+##   ..   fee_cleaned = col_double(),
+##   ..   league_name = col_character(),
+##   ..   year = col_double(),
+##   ..   season = col_character()
+##   .. )
+##  - attr(*, &quot;problems&quot;)=&lt;externalptr&gt;</code></pre>
+<p>The other data set we used was from Kaggle user Sergi Lehkyi, who compiled data from www.understat.com. This dataset contained advanced team performance metrics from 2013/2014 season - present, on a season-by-season basis. Columns in this data set include:</p>
+<p>● Position at season finish (1-20), team, amount of matches played, wins, draws, losses, goals scored, goals conceded, points, ● xG - expected goals metric ○ Expected goals is a descriptive statistic generated by Understat’s model- which we are not fully privy to, however, we do know many of the predictors. It calculates the probability of every shot in a game resulting in a goal, based on the field position, body part (i.e. dominant foot, weak foot, head), and situation (i.e. open play, penalty, corner). For example, a far away, weak foot shot would have an expected goal value close to 0, and an extremely close, dominant foot shot would have an expected goal value close to 1. One can sum these probabilities to calculate a team’s expected goals in a given game or season. ○ A criticism of expected goals is that it does not take into account the skill of the player shooting; for example, one may think Maradona has a higher chance of scoring a given shot than an average player. However, <a href="https://www.goodreads.com/en/book/show/48734223-the-expected-goals-philosophy">research</a> on the topic shows that even great players do not consistently outperform expected goals (with the notable exception of Lionel Messi, who is not present in this data). ● xpts - expected points ○ From expected goals for and against in a given game, one can calculate the probability of a team winning or drawing a game, which correspond to three and one league points respectively. (The worst expected points in a game is 0, highest is 3.) A team’s expected points over the course of a season is the sum of their expected points from each game. ● xpts_diff - difference between actual and expected points ● xG_diff - difference between actual goals scored and expected goals. ● npxG - expected goals without penalties and own goals. ● xGA - expected goals against. ● xGA_diff - difference between actual goals conceded and expected goals against. ● npxGA - expected goals against without penalties and own goals. ● npxGD - difference between “for” and “against” expected goals without penalties and own goals. ● ppda_coef - passes allowed per defensive action in the opposition half (power of pressure) ● oppda_coef - opponent passes allowed per defensive action in the opposition half (power of opponent’s pressure), ● deep - passes completed within an estimated 20 yards of goal (crosses excluded), ● deep_allowed - opponent passes completed within an estimated 20 yards of goal (crosses excluded),</p>
+<pre class="r"><code>performanceData = read_csv(&quot;ProjectData\\understat.csv&quot;)</code></pre>
+<pre><code>## New names:
+## * `` -&gt; ...1
+## * `` -&gt; ...2</code></pre>
+<pre><code>## Rows: 684 Columns: 24</code></pre>
+<pre><code>## -- Column specification --------------------------------------------------------
+## Delimiter: &quot;,&quot;
+## chr  (2): ...1, team
+## dbl (22): ...2, position, matches, wins, draws, loses, scored, missed, pts, ...</code></pre>
+<pre><code>## 
+## i Use `spec()` to retrieve the full column specification for this data.
+## i Specify the column types or set `show_col_types = FALSE` to quiet this message.</code></pre>
+<pre class="r"><code>str(performanceData)</code></pre>
 <pre><code>## spec_tbl_df [684 x 24] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
 ##  $ ...1        : chr [1:684] &quot;La_liga&quot; &quot;La_liga&quot; &quot;La_liga&quot; &quot;La_liga&quot; ...
 ##  $ ...2        : num [1:684] 2014 2014 2014 2014 2014 ...
@@ -239,158 +337,92 @@ str(performanceData)</code></pre>
 ##   .. )
 ##  - attr(*, &quot;problems&quot;)=&lt;externalptr&gt;</code></pre>
 </div>
-<div id="transfer-data" class="section level3">
-<h3>Transfer Data</h3>
-<p>Individual transfers in European soccer leagues as scraped from www.transfermarkt.com, by github user ewenme: <a href="https://github.com/ewenme/transfers" class="uri">https://github.com/ewenme/transfers</a></p>
-<pre class="r"><code>rawTransferData = read_csv(&quot;https://raw.githubusercontent.com/ewenme/transfers/master/data/2014/english_premier_league.csv&quot;)
-
-for (i in 2015:2019) {
-  link = paste0(&quot;https://raw.githubusercontent.com/ewenme/transfers/master/data/&quot;, i, &quot;/english_premier_league.csv&quot;)
-  data = read_csv(link)
-  rawTransferData = bind_rows(rawTransferData, data)
-}
-str(rawTransferData)</code></pre>
-<pre><code>## spec_tbl_df [5,127 x 12] (S3: spec_tbl_df/tbl_df/tbl/data.frame)
-##  $ club_name         : chr [1:5127] &quot;Arsenal FC&quot; &quot;Arsenal FC&quot; &quot;Arsenal FC&quot; &quot;Arsenal FC&quot; ...
-##  $ player_name       : chr [1:5127] &quot;Alexis Sánchez&quot; &quot;Calum Chambers&quot; &quot;Danny Welbeck&quot; &quot;Mathieu Debuchy&quot; ...
-##  $ age               : num [1:5127] 25 19 23 28 25 22 21 19 22 19 ...
-##  $ position          : chr [1:5127] &quot;Centre-Forward&quot; &quot;Centre-Back&quot; &quot;Centre-Forward&quot; &quot;Right-Back&quot; ...
-##  $ club_involved_name: chr [1:5127] &quot;FC Barcelona&quot; &quot;Southampton&quot; &quot;Man Utd&quot; &quot;Newcastle&quot; ...
-##  $ fee               : chr [1:5127] &quot;£38.25m&quot; &quot;£18.21m&quot; &quot;£18.00m&quot; &quot;£13.50m&quot; ...
-##  $ transfer_movement : chr [1:5127] &quot;in&quot; &quot;in&quot; &quot;in&quot; &quot;in&quot; ...
-##  $ transfer_period   : chr [1:5127] &quot;Summer&quot; &quot;Summer&quot; &quot;Summer&quot; &quot;Summer&quot; ...
-##  $ fee_cleaned       : num [1:5127] 38.2 18.2 18 13.5 3.6 ...
-##  $ league_name       : chr [1:5127] &quot;Premier League&quot; &quot;Premier League&quot; &quot;Premier League&quot; &quot;Premier League&quot; ...
-##  $ year              : num [1:5127] 2014 2014 2014 2014 2014 ...
-##  $ season            : chr [1:5127] &quot;2014/2015&quot; &quot;2014/2015&quot; &quot;2014/2015&quot; &quot;2014/2015&quot; ...
-##  - attr(*, &quot;spec&quot;)=
-##   .. cols(
-##   ..   club_name = col_character(),
-##   ..   player_name = col_character(),
-##   ..   age = col_double(),
-##   ..   position = col_character(),
-##   ..   club_involved_name = col_character(),
-##   ..   fee = col_character(),
-##   ..   transfer_movement = col_character(),
-##   ..   transfer_period = col_character(),
-##   ..   fee_cleaned = col_double(),
-##   ..   league_name = col_character(),
-##   ..   year = col_double(),
-##   ..   season = col_character()
-##   .. )
-##  - attr(*, &quot;problems&quot;)=&lt;externalptr&gt;</code></pre>
-</div>
-</div>
-<div id="data-cleaning-and-preparing" class="section level2">
-<h2>Data Cleaning and Preparing</h2>
-<div id="transfer-data-1" class="section level3">
-<h3>Transfer Data</h3>
-<pre class="r"><code>transferData = rawTransferData
-
-#adjust data formatting issues
-transferData$fee_cleaned[transferData$player_name == &quot;Bertrand Traoré&quot; &amp; transferData$age == 20] = 1.8
-transferData$club_name = sub(&quot; FC&quot;, &quot;&quot;, transferData$club_name)
-transferData$club_name[transferData$club_name == &quot;AFC Bournemouth&quot;] = &quot;Bournemouth&quot;
-transferData$club_name[transferData$club_name == &quot;Brighton &amp; Hove Albion&quot;] = &quot;Brighton&quot;
-transferData$club_name[transferData$club_name == &quot;Cardiff City&quot;] = &quot;Cardiff&quot;
-transferData$club_name[transferData$club_name == &quot;Huddersfield Town&quot;] = &quot;Huddersfield&quot;
-transferData$club_name[transferData$club_name == &quot;Hull City&quot;] = &quot;Hull&quot;
-transferData$club_name[transferData$club_name == &quot;Leicester City&quot;] = &quot;Leicester&quot;
-transferData$club_name[transferData$club_name == &quot;Norwich City&quot;] = &quot;Norwich&quot;
-transferData$club_name[transferData$club_name == &quot;Stoke City&quot;] = &quot;Stoke&quot;
-transferData$club_name[transferData$club_name == &quot;Sunderland AFC&quot;] = &quot;Sunderland&quot;
-transferData$club_name[transferData$club_name == &quot;Swansea City&quot;] = &quot;Swansea&quot;
-transferData$club_name[transferData$club_name == &quot;Tottenham Hotspur&quot;] = &quot;Tottenham&quot;
-transferData$club_name[transferData$club_name == &quot;West Ham United&quot;] = &quot;West Ham&quot;
-
-#filter to summer transfers with fees; control for transfer in or out
-transferData$fee_cleaned[transferData$transfer_movement == &quot;out&quot;] = -1 * transferData$fee_cleaned</code></pre>
+<div id="cleaning" class="section level3">
+<h3>Cleaning</h3>
+<p>The way we went about cleaning the data was first dealing with the transfer data. The first thing we did was filter the data set to only look at the summer transfers and coded fees in and out with multiplying transfers out by -1, so we were able to calculate net transfer spend. Next we classified transfers by three groups: Attacker, Midfielder, Defender. We also calculated the average age of the transfers for a team by position breakdown and overall. We then realized teams with 0 net spend were coded with NA’s so we recorded those as zeros. We then pivoted wider to have columns for net spend per position and average age per position. We added 3 additional columns to display the number of players per position. Lastly, we changed the names of the clubs to match the club names in the Understat data set. In the Understat data set we added a column for last year’s expected points to use that in a calculation to create a column for difference in expected points. We removed data from 2014 because we had no data from 2013. After that we left joined the two data sets to get our final dataset we used for the rest of the project.</p>
 <pre><code>## Warning in transferData$fee_cleaned[transferData$transfer_movement == &quot;out&quot;] =
 ## -1 * : number of items to replace is not a multiple of replacement length</code></pre>
-<pre class="r"><code>transferData = transferData %&gt;% filter(transfer_period == &quot;Summer&quot;, complete.cases(fee_cleaned))
+<p>Our final dataset has 85 data points; 17 teams staying in the Premier League across each summer (the bottom three are relegated to the second division) over 5 summers (2014-2018; with performance data from 2013-2019). Each data point contains data for a given team’s transfers over a summer, and performance for the previous and upcoming season.</p>
+<pre class="r"><code>finalData = left_join(pd, transferData) %&gt;% mutate(avgAge_Overall = (avgAge_Attacker * n_Attacker + avgAge_Midfielder * n_Midfielder + avgAge_Defender * n_Defender)/(n_Attacker + n_Midfielder + n_Defender), diffXP = xpts - lastYearXpts) %&gt;% select(year, team, pts, xpts, lastYearXpts, diffXP, xG, xGA, contains(c(&quot;net&quot;, &quot;avg&quot;, &quot;n_&quot;)))</code></pre>
+<pre><code>## Joining, by = c(&quot;year&quot;, &quot;team&quot;)</code></pre>
+<pre class="r"><code>finalData$team = as.factor(finalData$team)
 
-#Classify by three groups: Attacker, Midfielder, Defender
-transferData$positionGroup = &quot;Attacker&quot;
-transferData$positionGroup[grepl(&quot;Midfield&quot;, transferData$position)] = &quot;Midfielder&quot;
-transferData$positionGroup[(grepl(&quot;Back&quot;, transferData$position) | transferData$position == &quot;Goalkeeper&quot;)] = &quot;Defender&quot;
-
-#dplyr 
-transferData = transferData %&gt;% group_by(year, club_name, positionGroup) %&gt;% summarize(netTransferSpend = sum(fee_cleaned), avgAge = mean(age), n = n()) %&gt;% pivot_wider(names_from = positionGroup, values_from = c(netTransferSpend, avgAge, n))
-
-transferData[is.na(transferData)] = 0 #some teams did not buy or sell a certain class of player in a given summer. set these to zero.
-
-transferData = transferData %&gt;% rename(team = club_name) %&gt;% mutate(netTransferSpend_Total = sum(netTransferSpend_Attacker, netTransferSpend_Midfielder, netTransferSpend_Defender))</code></pre>
+dim(finalData)</code></pre>
+<pre><code>## [1] 85 19</code></pre>
+<pre class="r"><code>finalData %&gt;% head()</code></pre>
+<pre><code>## # A tibble: 6 x 19
+##    year team                pts  xpts lastYearXpts diffXP    xG   xGA netTransferSpen~
+##   &lt;dbl&gt; &lt;fct&gt;             &lt;dbl&gt; &lt;dbl&gt;        &lt;dbl&gt;  &lt;dbl&gt; &lt;dbl&gt; &lt;dbl&gt;            &lt;dbl&gt;
+## 1  2015 Leicester            81  68.9         44.6  24.3   68.4  45.0             9.9 
+## 2  2015 Arsenal              71  77.0         75.2   1.83  73.5  33.9           -15.9 
+## 3  2015 Tottenham            70  69.4         48.9  20.5   63.4  37.1            35.1 
+## 4  2015 Manchester United    66  56.4         63.0  -6.59  45.4  39.7            63.4 
+## 5  2015 Manchester City      66  70.1         73.1  -2.96  66.2  37.5            60.3 
+## 6  2015 Southampton          63  61.1         62.8  -1.74  56.2  44.3             4.23
+## # ... with 10 more variables: netTransferSpend_Defender &lt;dbl&gt;,
+## #   netTransferSpend_Midfielder &lt;dbl&gt;, netTransferSpend_Total &lt;dbl&gt;,
+## #   avgAge_Attacker &lt;dbl&gt;, avgAge_Defender &lt;dbl&gt;, avgAge_Midfielder &lt;dbl&gt;,
+## #   avgAge_Overall &lt;dbl&gt;, n_Attacker &lt;int&gt;, n_Defender &lt;int&gt;,
+## #   n_Midfielder &lt;int&gt;</code></pre>
 </div>
-<div id="performance-data-1" class="section level3">
-<h3>Performance Data</h3>
-<pre class="r"><code>#Selects the Premier League teams and drops the &quot;league&quot; column.
-performanceData = performanceData %&gt;% filter(...1 == &quot;EPL&quot;) %&gt;% rename(year = ...2) %&gt;% select(-...1)
-pd = performanceData
-pd[&quot;lastYearXpts&quot;] = 0
-pd[&quot;lastYearpts&quot;] = 0
-
-#Adding last year&#39;s points to this year&#39;s row
-
-for (i in 2015:2019) {
-  listofTeams = pd[pd[&quot;year&quot;] == i, &quot;team&quot;]
-  for (j in 1:nrow(listofTeams)) {
-    t = toString(listofTeams[j,])
-    #cat(&quot;year: &quot;, i, &quot; team: &quot;, t, &quot;\n\n&quot;)
-    lastYearXP = as.numeric(pd[(pd[&quot;year&quot;] == i-1 &amp; pd[&quot;team&quot;] == t), &quot;xpts&quot;])
-    pd[(pd[&quot;year&quot;] == i &amp; pd[&quot;team&quot;] == t), &quot;lastYearXpts&quot;] = lastYearXP
-  }
-}
-
-# Take out promoted teams and 2014 data, because we have no 2013 data
-pd = pd[which(!(pd$lastYearXpts == 0) &amp; !is.na(pd$lastYearXpts)),]</code></pre>
 </div>
+<div id="methods" class="section level2">
+<h2>Methods</h2>
+<p>We used linear least squares regression (LSR) with a random effect. Linear least squares regression is a basic model with the goal to fit the linear relationship with minimal squared residuals between the independent and dependent variables. With least squares regression it helps reduce variance which is needed with many varying variables being used. We are also interested in finding the effect on expected points for each team which is why we used a random effect with the LSR. This would give each team their own beta so the model isn’t unified representing all teams. Unfortunately, it did not help our findings but was still used. For the least squares regression, we regressed the difference in expected points on net transfer spending total, average overall age, last year’s expected points, and a random effect for teams. Age was included in the model because we hypothesize that younger players are cheaper, and do not have an immediate impact on their team’s performance. A team who trades for many young players should not be punished in our model with average age included. Last year’s expected points was included in the model to help account for regression to the mean- that is, the statistical phenomenon where an exceptional season will more than likely be followed by a worse one just by its exceptional nature, regardless of the inputs.</p>
+<p>Net transfer spending total of each team was important, but still yielded only marginal significance to expected points. In the results section, you will see how the model performed with the variables that were decided on.</p>
+<p>In summary, our model is:</p>
+<p>DiffXP ~ netTransferSpend_Total + avgAge_Overall + lastYearXpts + team,</p>
+<p>Where:<br />
+● DiffXP is the difference in a team’s expected points from one season to the next ● netTransferSpend_Total is the total net transfer spend for the team over the summer; calculated as expenditures - revenue from sales ● avgAge_Overall is the average age of the players transferred in ● lastYearXpts is the team’s expected points from the previous season</p>
 </div>
 <div id="results" class="section level2">
 <h2>Results</h2>
-<pre class="r"><code>finalData = left_join(pd, transferData) %&gt;% mutate(avgAge_Overall = (avgAge_Attacker * n_Attacker + avgAge_Midfielder * n_Midfielder + avgAge_Defender * n_Defender)/(n_Attacker + n_Midfielder + n_Defender), diffXP = xpts - lastYearXpts) %&gt;% select(year, team, pts, xpts, lastYearXpts, diffXP, xG, xGA, contains(c(&quot;net&quot;, &quot;avg&quot;, &quot;n_&quot;)))
-
-finalData$team = as.factor(finalData$team)
-
-#summary(lm(diffXP ~ netTransferSpend_Total + avgAge_Overall, data = finalData))
-fit = lmer(diffXP ~ netTransferSpend_Total + avgAge_Overall + (1 | team), data = finalData)
+<pre class="r"><code>fit = lmer(diffXP ~ netTransferSpend_Total + avgAge_Overall + lastYearXpts + (1 | team), data = finalData)
 summary(fit)</code></pre>
 <pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
 ## lmerModLmerTest]
-## Formula: diffXP ~ netTransferSpend_Total + avgAge_Overall + (1 | team)
+## Formula: diffXP ~ netTransferSpend_Total + avgAge_Overall + lastYearXpts +  
+##     (1 | team)
 ##    Data: finalData
 ## 
-## REML criterion at convergence: 606.4
+## REML criterion at convergence: 606.3
 ## 
 ## Scaled residuals: 
-##      Min       1Q   Median       3Q      Max 
-## -2.47105 -0.69857 -0.00237  0.54598  2.90827 
+##     Min      1Q  Median      3Q     Max 
+## -2.2197 -0.7171  0.0017  0.6897  2.9312 
 ## 
 ## Random effects:
 ##  Groups   Name        Variance Std.Dev.
 ##  team     (Intercept)  0.00    0.000   
-##  Residual             73.17    8.554   
+##  Residual             71.19    8.438   
 ## Number of obs: 85, groups:  team, 23
 ## 
 ## Fixed effects:
-##                         Estimate Std. Error        df t value Pr(&gt;|t|)
-## (Intercept)            -12.62688   19.20057  82.00000  -0.658    0.513
-## netTransferSpend_Total   0.01996    0.01776  82.00000   1.124    0.264
-## avgAge_Overall           0.45256    0.76721  82.00000   0.590    0.557
+##                        Estimate Std. Error       df t value Pr(&gt;|t|)  
+## (Intercept)            12.62834   23.52532 81.00000   0.537    0.593  
+## netTransferSpend_Total  0.03032    0.01843 81.00000   1.645    0.104  
+## avgAge_Overall         -0.24760    0.84994 81.00000  -0.291    0.772  
+## lastYearXpts           -0.15073    0.08329 81.00000  -1.810    0.074 .
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
 ## 
 ## Correlation of Fixed Effects:
-##             (Intr) ntTS_T
-## ntTrnsfrS_T -0.345       
-## avgAg_Ovrll -0.998  0.314
+##             (Intr) ntTS_T avgA_O
+## ntTrnsfrS_T -0.080              
+## avgAg_Ovrll -0.986  0.124       
+## lastYerXpts -0.593 -0.311  0.455
 ## optimizer (nloptwrap) convergence code: 0 (OK)
 ## boundary (singular) fit: see ?isSingular</code></pre>
 <pre class="r"><code>rand(fit)</code></pre>
 <pre><code>## ANOVA-like table for random-effects: Single term deletions
 ## 
 ## Model:
-## diffXP ~ netTransferSpend_Total + avgAge_Overall + (1 | team)
+## diffXP ~ netTransferSpend_Total + avgAge_Overall + lastYearXpts + (1 | team)
 ##            npar  logLik    AIC        LRT Df Pr(&gt;Chisq)
-## &lt;none&gt;        5 -303.22 616.44                         
-## (1 | team)    4 -303.22 614.44 2.2737e-13  1          1</code></pre>
+## &lt;none&gt;        6 -303.16 618.32                         
+## (1 | team)    5 -303.16 616.32 2.2737e-13  1          1</code></pre>
+<p>We found no significance with the random team effect. The R^2 value was 0.05415 for our model while the P-value for net transfer spend was .104 while this result was not significant so we fail to reject the null hypothesis that higher net transfer spend causes an increase in expected points. Additionally, our model shows a slightly significant effect of last year’s expected points on the difference of expected points, with a P-value of .074. From figure 1 shown below we can see that there is a slightly positive correlation between net transfer spend and difference in expected points. Furthermore we ran a power analysis on our regression to see how large of a sample we would need to detect the effect of transfer spending with 80% power at .05 significance level. The test gave us the following output: u = 3, f2 = 0.0572500, v = 190.3895, sig.level = 0.05, power = 0.8</p>
+<p>We interpret this as we need 194.3895 samples to detect this effect with 80% power at a 0.05 significance level. Additionally, we ran the same test to determine what the power of our model was and got the following results: u = 3, v = 81, f2 = 0.05725009, sig.level = 0.05, power = 0.4112372</p>
 <div id="figure-1" class="section level3">
 <h3>Figure 1</h3>
 <pre class="r"><code>finalData %&gt;% ggplot(aes(x = netTransferSpend_Total, y = diffXP)) +
@@ -401,7 +433,59 @@ summary(fit)</code></pre>
   ylab(&quot;Increase in xP&quot;)</code></pre>
 <pre><code>## `geom_smooth()` using formula &#39;y ~ x&#39;</code></pre>
 <p><img src="data:image/png;base64,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" width="672" /></p>
+<p>Additionally, we tried a model breaking down age overall to age overall by position and breaking down net transfer spend to net transfer spend by position. Even when controlling for these variables at a higher order we still failed to reject the null hypothesis.</p>
+<pre class="r"><code>summary(lmer(diffXP ~ netTransferSpend_Attacker + netTransferSpend_Midfielder + netTransferSpend_Defender + avgAge_Attacker + avgAge_Midfielder + avgAge_Defender + lastYearXpts + (1 | team), data = finalData))</code></pre>
+<pre><code>## boundary (singular) fit: see ?isSingular</code></pre>
+<pre><code>## Linear mixed model fit by REML. t-tests use Satterthwaite&#39;s method [
+## lmerModLmerTest]
+## Formula: diffXP ~ netTransferSpend_Attacker + netTransferSpend_Midfielder +  
+##     netTransferSpend_Defender + avgAge_Attacker + avgAge_Midfielder +  
+##     avgAge_Defender + lastYearXpts + (1 | team)
+##    Data: finalData
+## 
+## REML criterion at convergence: 615
+## 
+## Scaled residuals: 
+##      Min       1Q   Median       3Q      Max 
+## -2.21227 -0.67009 -0.01718  0.63115  2.79422 
+## 
+## Random effects:
+##  Groups   Name        Variance Std.Dev.
+##  team     (Intercept)  0.00    0.000   
+##  Residual             74.09    8.608   
+## Number of obs: 85, groups:  team, 23
+## 
+## Fixed effects:
+##                             Estimate Std. Error       df t value Pr(&gt;|t|)  
+## (Intercept)                  5.51332   23.12942 77.00000   0.238   0.8122  
+## netTransferSpend_Attacker    0.02231    0.03410 77.00000   0.654   0.5149  
+## netTransferSpend_Midfielder  0.01768    0.03504 77.00000   0.505   0.6152  
+## netTransferSpend_Defender    0.04992    0.03332 77.00000   1.498   0.1382  
+## avgAge_Attacker             -0.26491    0.66863 77.00000  -0.396   0.6931  
+## avgAge_Midfielder            0.09451    0.26577 77.00000   0.356   0.7231  
+## avgAge_Defender              0.19289    0.55989 77.00000   0.345   0.7314  
+## lastYearXpts                -0.14452    0.08594 77.00000  -1.682   0.0967 .
+## ---
+## Signif. codes:  0 &#39;***&#39; 0.001 &#39;**&#39; 0.01 &#39;*&#39; 0.05 &#39;.&#39; 0.1 &#39; &#39; 1
+## 
+## Correlation of Fixed Effects:
+##             (Intr) ntTS_A ntTS_M ntTS_D avgA_A avgA_M avgA_D
+## ntTrnsfrS_A -0.169                                          
+## ntTrnsfrS_M  0.116  0.041                                   
+## ntTrnsfrS_D -0.065 -0.038 -0.129                            
+## avgAg_Attck -0.684  0.099 -0.100  0.095                     
+## avgAg_Mdfld -0.351 -0.021  0.026  0.025  0.100              
+## avgAg_Dfndr -0.481  0.159 -0.015  0.016 -0.215 -0.036       
+## lastYerXpts -0.592 -0.067 -0.299 -0.153  0.402  0.120  0.130
+## optimizer (nloptwrap) convergence code: 0 (OK)
+## boundary (singular) fit: see ?isSingular</code></pre>
+<p>Furthermore, for easier interpretation, we re-ran these models using difference in actual earned points as our outcome rather than calculated expected points, and found similar results.</p>
 </div>
+</div>
+<div id="conclusion" class="section level2">
+<h2>Conclusion</h2>
+<p>Our model suggests a potential relationship between net transfer spend and change in expected points for Premier League teams in recent years, though it does not reach statistical significance in our experiment. The marginally significant result from linear regression certainly suggests more research on this topic would be warranted. Public expected goals data is only available from 2013, though it is likely more professional sports data organizations have larger datasets that could be analyzed in a similar fashion. Furthermore, expected points is one of many performance metrics for a soccer team that could be used, though we remain steadfast on the validity of expected points as a performance metric.</p>
+<p>We identify three main limitations with our project. One is small sample size; 85 data points does not invalidate our findings, but it is still not desirable. Another is regression to the mean, discussed in the methods section- which we did our best to control for but can never fully quantify and account for. The third is the fundamental problem of causal inference; we assume the comparability of team-seasons because we cannot observe the same team-season with varying net transfer spend. However, this assumption is shaky, since there is only a finite number of (expected) points available each season, and the performance of one team in a game immediately affects the performance of their opponent. Comparing similar seasons across different years is an immediate solution to this problem, but is limited by public availability of data.</p>
 </div>
 </div>
 
